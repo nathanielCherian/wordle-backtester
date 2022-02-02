@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <string>
 #include <regex>
 
@@ -25,11 +28,11 @@ void print_guess(Guess* guess) {
 
 string strategy(Guess* guesses[], int round) {
     if (round == 0) {
-        return "teach";
+        return "heats";
     } else if(round == 1) {
-        return "noirs";
+        return "groin";
     } else if(round == 2) {
-        return "blank";
+        return "clump";
     }
     return "xxxxx";
 }
@@ -61,7 +64,7 @@ void filter_by_guess(string all_words[], Guess* guess) {
         bool valid = true;
         for(int t=0; t<5; t++) {
             if(guess->results[t] == WRONG_LOCATION) {
-                if(all_words[i].find(guess->word.at(t)) != string::npos) {
+                if(all_words[i].find(guess->word.at(t)) == string::npos) {
                     valid = false;
                     break;
                 }
@@ -122,7 +125,7 @@ Guess* merge_guesses(Guess* guesses[]) {
     guess->word = "xxxxx";
     memset(guess->results, 0, 5*sizeof(int));
 
-    for(int i=0; i<5; i++) {
+    for(int i=0; i<6; i++) {
         if(guesses[i] == NULL) continue;
         for(int t=0; t<5; t++) {
             if(guesses[i]->results[t] > guess->results[t]) {
@@ -136,16 +139,58 @@ Guess* merge_guesses(Guess* guesses[]) {
     return guess;
 }
 
-int main() {
-    cout << "Hello there!" << endl;
 
-    string all_words[12972]; int word_index=0;
+void word_filter_eval(string test_word, int stop, string all_words[]) {
+    Guess* guesses[6];
+    for(int i=0; i<6; i++) {
+        string word = strategy(guesses, i);
+        Guess* guess = evaulate_guess(word, test_word);
+        guesses[i] = guess;
+    }
+
+    for(int i=0; i<stop; i++) {
+        cout << "guess#" << i << " ";
+        if(guesses[i] == NULL) continue;
+        print_guess(guesses[i]);
+    }
+
+    cout << endl;
+    Guess* g = merge_guesses(guesses);
+    print_guess(g);
+
+    filter_by_guess(all_words, g);
+}
+
+
+string* load_words(string filename, int length) {
+    string *words = new string[length]; int word_index=0;
     string line;
-    ifstream all_words_file("all-words.txt");
+    ifstream all_words_file(filename);
     while(getline(all_words_file, line)) {
-        all_words[word_index] = line;
+        words[word_index] = line;
         word_index++;
     }
+    return words;
+}
+
+string random_word(string words[], int length) {
+    int r = rand()%length;
+    return words[r];
+}
+
+int main() {
+
+    srand(time(0));
+    cout << "Hello there!" << endl;
+
+    string* all_words = load_words("all-words.txt", 12972);
+    string* ans_words = load_words("wordle-answers-alphabetical.txt", 2315);
+
+    string rand_word = random_word(ans_words, 2315);
+    cout << "Testing: " << rand_word << endl;
+
+    word_filter_eval(rand_word, 3, all_words);
+    return 0; 
 
     // char test_word[] = {'t', 'h', 'o', '\0', '\0'};
     // filter_by_posession(all_words, test_word);
