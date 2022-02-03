@@ -28,11 +28,11 @@ void print_guess(Guess* guess) {
 
 string strategy(Guess* guesses[], int round) {
     if (round == 0) {
-        return "heats";
+        return "teach";
     } else if(round == 1) {
-        return "groin";
+        return "noirs";
     } else if(round == 2) {
-        return "clump";
+        return "blump";
     }
     return "xxxxx";
 }
@@ -58,7 +58,7 @@ Guess* evaulate_guess(string word, string answer) {
 }
 
 
-void filter_by_guess(string all_words[], Guess* guess) {
+int filter_by_guess(string all_words[], Guess* guess) {
     int total = 0;
     for(int i=0; i<12972; i++) {
         bool valid = true;
@@ -78,8 +78,7 @@ void filter_by_guess(string all_words[], Guess* guess) {
 
         if(valid) total++;
     }
-
-    cout << "TOTAL: " << total << endl;
+    return total;
 }
 
 void filter_by_posession(string all_words[], char tem[]) {
@@ -140,7 +139,7 @@ Guess* merge_guesses(Guess* guesses[]) {
 }
 
 
-void word_filter_eval(string test_word, int stop, string all_words[]) {
+int word_filter_eval(string test_word, int stop, string all_words[]) {
     Guess* guesses[6];
     for(int i=0; i<6; i++) {
         string word = strategy(guesses, i);
@@ -149,16 +148,16 @@ void word_filter_eval(string test_word, int stop, string all_words[]) {
     }
 
     for(int i=0; i<stop; i++) {
-        cout << "guess#" << i << " ";
         if(guesses[i] == NULL) continue;
-        print_guess(guesses[i]);
+        //print_guess(guesses[i]);
     }
 
     cout << endl;
     Guess* g = merge_guesses(guesses);
-    print_guess(g);
 
-    filter_by_guess(all_words, g);
+    int total = filter_by_guess(all_words, g);
+    return total;
+    cout << "TOTAL: " << total << endl;
 }
 
 
@@ -181,15 +180,22 @@ string random_word(string words[], int length) {
 int main() {
 
     srand(time(0));
-    cout << "Hello there!" << endl;
+    cout << "Starting program... " << endl;
 
     string* all_words = load_words("all-words.txt", 12972);
     string* ans_words = load_words("wordle-answers-alphabetical.txt", 2315);
 
-    string rand_word = random_word(ans_words, 2315);
-    cout << "Testing: " << rand_word << endl;
 
-    word_filter_eval(rand_word, 3, all_words);
+    ofstream score_file("score.txt");
+    for(int i=0; i<2315; i++) {
+        string rand_word = ans_words[i];//random_word(ans_words, 2315);
+        cout << "Testing: " << rand_word << endl;
+        int score = word_filter_eval(rand_word, 3, all_words);
+        score_file << score << endl;
+    }
+
+
+
     return 0; 
 
     // char test_word[] = {'t', 'h', 'o', '\0', '\0'};
